@@ -1,0 +1,10 @@
+version: '1'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    platform: linux/amd64
+    ports:
+      - 6379:6379
