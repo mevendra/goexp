@@ -43,7 +43,7 @@ func LoadConfig(path string) *Config {
 	var config *Config
 	viper.SetConfigFile(path)
 	viper.SetConfigType("env")
-	viper.SetConfigFile(".env")
+	viper.SetConfigFile("env")
 	viper.AutomaticEnv()
 	_ = viper.ReadInConfig()
 	if err := viper.Unmarshal(&config); err != nil {

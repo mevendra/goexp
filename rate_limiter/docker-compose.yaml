@@ -8,3 +8,9 @@ services:
     platform: linux/amd64
     ports:
       - 6379:6379
+  web:
+    build: .
+    ports:
+      - 8080:8080
+    env_file:
+      - ./cmd/limiter/env
