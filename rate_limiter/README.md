@@ -30,7 +30,9 @@ A aplicação implementa um `RateLimiter`, que recebe os parâmetros de configur
 
 A aplicação também implementa um `Middleware`, que recebe um objeto `RateLimiter` e o utiliza para realizar controle de Rate Limit para uma função de `http.HandlerFunc`;
 
+### Testes
+
 A aplicação possui um exemplo de implementação:
 * No exemplo da aplicação está uma implementação de `Memory` utilizando Redis;
-* O arquivo `cmd/limiter/main.go` inicia uma aplicação na porta `PORT`, roteando a rota `/` utilizando o Middleware inicializado com o RateLimiter. As configurações do rate limiter de exemplo podem ser alteradas no arquivo `cmd/limiter/.env`;
-* O arquivo `docs/api.http` possui exemplo de request para testar a API, utilizando a aplicação rodando na porta 8080;
+* Requests para a rota `/`. As configurações do rate limiter de exemplo podem ser alteradas no arquivo `cmd/limiter/.env`;
+* O arquivo `docs/api.http` possui exemplo de request para testar a API, utilizando a aplicação rodando localmente na porta 8080;
