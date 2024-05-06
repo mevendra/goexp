@@ -1,4 +1,4 @@
-module github.com/devfullcycle/20-CleanArch
+module carch
 
 go 1.19
 

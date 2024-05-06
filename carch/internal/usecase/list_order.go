@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/devfullcycle/20-CleanArch/internal/entity"
+import "carch/internal/entity"
 
 type ListOrderOutputDTO []OrderOutputDTO
 
