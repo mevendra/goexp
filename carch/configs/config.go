@@ -1,6 +1,9 @@
 package configs
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"github.com/spf13/viper"
+)
 
 type conf struct {
 	DBDriver          string `mapstructure:"DB_DRIVER"`
@@ -12,6 +15,8 @@ type conf struct {
 	WebServerPort     string `mapstructure:"WEB_SERVER_PORT"`
 	GRPCServerPort    string `mapstructure:"GRPC_SERVER_PORT"`
 	GraphQLServerPort string `mapstructure:"GRAPHQL_SERVER_PORT"`
+	RabbitMQHost      string `mapstructure:"RABBITMQ_HOST"`
+	RabbitMQPort      string `mapstructure:"RABBITMQ_PORT"`
 }
 
 func LoadConfig(paths ...string) (*conf, error) {
@@ -32,4 +37,16 @@ func LoadConfig(paths ...string) (*conf, error) {
 		panic(err)
 	}
 	return cfg, err
+}
+
+func (c *conf) String() string {
+	return fmt.Sprintf(`
+	DB: [Driver: %s, Host: %s, Port: %s, User: %s]
+	RABBIT: [Host: %s, Port: %s]
+	WEB: [Port: %s]
+	GRPC: [Port: %s]
+	GQL: [Port: %s]`,
+		c.DBDriver, c.DBHost, c.DBPort, c.DBUser,
+		c.RabbitMQHost, c.RabbitMQPort,
+		c.WebServerPort, c.GRPCServerPort, c.GraphQLServerPort)
 }

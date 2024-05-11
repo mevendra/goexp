@@ -1,11 +1,6 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"net"
-	"net/http"
-
 	"carch/configs"
 	"carch/internal/event/handler"
 	"carch/internal/infra/graph"
@@ -13,11 +8,15 @@ import (
 	"carch/internal/infra/grpc/service"
 	"carch/internal/infra/web/webserver"
 	"carch/pkg/events"
+	"database/sql"
+	"fmt"
 	graphql_handler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"net"
+	"net/http"
 
 	// mysql
 	_ "github.com/go-sql-driver/mysql"
@@ -28,6 +27,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("Configs: " + configs.String())
 
 	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
 	if err != nil {
@@ -35,7 +35,7 @@ func main() {
 	}
 	defer db.Close()
 
-	rabbitMQChannel := getRabbitMQChannel()
+	rabbitMQChannel := getRabbitMQChannel(configs.RabbitMQHost, configs.RabbitMQPort)
 
 	eventDispatcher := events.NewEventDispatcher()
 	eventDispatcher.Register("OrderCreated", &handler.OrderCreatedHandler{
@@ -75,8 +75,8 @@ func main() {
 	http.ListenAndServe(":"+configs.GraphQLServerPort, nil)
 }
 
-func getRabbitMQChannel() *amqp.Channel {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+func getRabbitMQChannel(host, port string) *amqp.Channel {
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://guest:guest@%s:%s/", host, port))
 	if err != nil {
 		panic(err)
 	}
