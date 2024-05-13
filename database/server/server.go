@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"io"
 	"log"
 	"net/http"
@@ -17,19 +17,15 @@ import (
 func main() {
 	log.Println("Starting client")
 
-	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/goexpert")
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
-	_, err = db.Query("CREATE TABLE IF NOT EXISTS bids (" +
-		"id INT PRIMARY KEY AUTO_INCREMENT," +
-		"bid FLOAT NOT NULL," +
-		"created_at TIME NOT NULL" +
-		");")
+	err = db.AutoMigrate(&QuotationDTO{})
 	if err != nil {
 		panic(err)
 	}
+
 	quotation := NewQuotation(time.Millisecond*200, time.Millisecond*10, db)
 	http.HandleFunc("/cotacao", func(w http.ResponseWriter, r *http.Request) {
 		res, err := quotation.New()
@@ -41,33 +37,34 @@ func main() {
 		b, err := json.Marshal(res)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		_, _ = w.Write(b)
 	})
-	_ = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 type QuotationDatabase struct {
 	timeout time.Duration
-	db      *sql.DB
+	db      *gorm.DB
 }
 
-func NewQuotationDatabase(timeout time.Duration, db *sql.DB) QuotationDatabase {
+func NewQuotationDatabase(timeout time.Duration, db *gorm.DB) QuotationDatabase {
 	return QuotationDatabase{timeout: timeout, db: db}
 }
 
 func (q QuotationDatabase) Add(quotation QuotationDTO) {
-	stmt, err := q.db.Prepare("insert into bids(created_at, bid) values(?, ?)")
-	if err != nil {
-		log.Println("Error preparing statement", err)
-		return
-	}
-	defer stmt.Close()
+	ctx, fnCancel := context.WithTimeout(context.Background(), q.timeout)
+	defer fnCancel()
 
-	_, err = stmt.Exec(time.Now(), quotation.Bid)
+	aux := q.db.WithContext(ctx)
+	err := aux.Create(&quotation).Error
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Println("database timeout exceeded")
@@ -83,7 +80,7 @@ type Quotation struct {
 	quotationDB QuotationDatabase
 }
 
-func NewQuotation(timeoutHttp, timeoutDb time.Duration, db *sql.DB) Quotation {
+func NewQuotation(timeoutHttp, timeoutDb time.Duration, db *gorm.DB) Quotation {
 	quotationDb := NewQuotationDatabase(timeoutDb, db)
 	return Quotation{
 		timeoutHttp: timeoutHttp,
@@ -139,5 +136,7 @@ func (q Quotation) New() (QuotationDTO, error) {
 }
 
 type QuotationDTO struct {
-	Bid float64 `json:"bid"`
+	Id        int       `json:"id"`
+	Bid       float64   `json:"bid"`
+	CreatedAt time.Time `json:"created_at"`
 }
