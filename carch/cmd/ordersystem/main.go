@@ -35,6 +35,13 @@ func main() {
 	}
 	defer db.Close()
 
+	_, _ = db.Exec("CREATE DATABASE orders;")
+	_, _ = db.Exec("CREATE TABLE orders.orders (" +
+		"id INT PRIMARY KEY AUTO_INCREMENT," +
+		"price INT," +
+		"tax INT," +
+		"final_price INT" +
+		");")
 	rabbitMQChannel := getRabbitMQChannel(configs.RabbitMQHost, configs.RabbitMQPort)
 
 	eventDispatcher := events.NewEventDispatcher()
