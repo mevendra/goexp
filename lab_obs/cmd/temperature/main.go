@@ -1,7 +1,9 @@
 package main
 
 import (
+	"os"
 	"temperature/internal/infra/cep"
+	"temperature/internal/infra/temperature"
 	"temperature/internal/infra/weather"
 	"temperature/internal/infra/web"
 	"temperature/internal/usecase"
@@ -10,10 +12,20 @@ import (
 func main() {
 	weatherService := weather.NewWeather()
 	cepService := cep.NewCep()
-	getTemperatureUseCase := usecase.NewGetTemperatureUseCase(cepService, weatherService)
+	temperatureUri := os.Getenv("TEMPERATURE_URI")
+	if temperatureUri == "" {
+		temperatureUri = "http://localhost:8081"
+	}
+	temperatureService := temperature.NewTemperature(temperatureUri)
 
-	port := "8080"
-	webHandler := web.NewWebHandler(getTemperatureUseCase)
+	getTemperatureUseCase := usecase.NewGetTemperatureUseCase(cepService, weatherService)
+	validateUseCase := usecase.NewValidateCepUseCase(cepService, temperatureService)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	webHandler := web.NewWebHandler(getTemperatureUseCase, validateUseCase)
 	err := webHandler.Start(port)
 	if err != nil {
 		panic(err)

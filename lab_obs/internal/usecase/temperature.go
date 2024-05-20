@@ -24,6 +24,7 @@ type GetTemperatureInput struct {
 }
 
 type GetTemperatureOutput struct {
+	City         string  `json:"city"`
 	TemperatureC float64 `json:"temp_C"`
 	TemperatureF float64 `json:"temp_F"`
 	TemperatureK float64 `json:"temp_K"`
@@ -41,6 +42,7 @@ func (t *GetTemperature) Execute(ctx context.Context, input GetTemperatureInput)
 	}
 
 	output := &GetTemperatureOutput{
+		City:         city,
 		TemperatureC: tmp,
 		TemperatureF: entity.CelsiusToFahrenheit(tmp),
 		TemperatureK: entity.CelsiusToKelvin(tmp),
