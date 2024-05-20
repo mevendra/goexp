@@ -44,6 +44,9 @@ func (s service) GetCity(ctx context.Context, cep string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != 200 {
+		if resp.StatusCode == 404 {
+			return "", errors.New(NotFoundZipCode)
+		}
 		return "", fmt.Errorf("cep api returned status code %d", resp.StatusCode)
 	}
 
