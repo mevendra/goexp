@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	netUrl "net/url"
 )
 
 type service struct {
@@ -23,8 +24,9 @@ func NewWeather() Weather {
 
 func (s service) GetTemperatureCelsius(ctx context.Context, city string) (float64, error) {
 	log.Printf("Executing request for weather api and city '%s'\n", city)
-
-	url := fmt.Sprintf("%s/current.json?key=%s&q=%s", s.url, s.apiKey, city)
+	city = netUrl.QueryEscape(city)
+	key := netUrl.QueryEscape(s.apiKey)
+	url := fmt.Sprintf("%s/current.json?key=%s&q=%s", s.url, key, city)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return 0, err

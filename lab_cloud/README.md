@@ -6,6 +6,6 @@ Aplicação para consulta de temperatura
 * Serviço disponível através da porta 8080:
   * Através do Dockerfile;
   * Através do arquivo `cmd/temperature/main.go`
-* Serivço disponível através do Google Run no endereço: https://temperature-yffengdbxq-vp.a.run.app
+* Serivço disponível através do Google Run no endereço: https://temperature-yffengdbxq-ue.a.run.app
 * Cep pode ser consultado atraves de query parameter cep: `?cep=99500000`
 * Exemplo `.http` de consulta disponível em: `api/get_temperature.http` 
