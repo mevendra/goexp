@@ -36,3 +36,27 @@ services:
       - "13133:13133" # health_check extension
       - "4317:4317"   # OTLP gRPC receiver
       - "55679:55679" # zpages extension
+
+  server_a:
+    build: .
+    depends_on:
+      - jaeger-all-in-one
+      - otel-collector
+    restart: on-failure
+    environment:
+      PORT: 8081
+      TEMPERATURE_URI: http://172.17.0.1:8080
+    ports:
+      - 8081:8081
+
+  server_b:
+    build: .
+    depends_on:
+      - jaeger-all-in-one
+      - otel-collector
+    restart: on-failure
+    environment:
+      PORT: 8080
+      TEMPERATURE_URI: http://172.17.0.1:8081
+    ports:
+      - 8080:8080
