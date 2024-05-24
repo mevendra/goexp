@@ -41,7 +41,6 @@ func (h Handler) serveHTTPTemperature(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cepInput := r.URL.Query().Get("cep")
-
 	input := usecase.GetTemperatureInput{Cep: cepInput}
 	output, err := h.temperature.Execute(ctx, input)
 	if err != nil {

@@ -35,7 +35,7 @@ func main() {
 	}
 	temperatureService := temperature.NewTemperature(temperatureUri)
 
-	getTemperatureUseCase := usecase.NewGetTemperatureUseCase(cepService, weatherService)
+	getTemperatureUseCase := usecase.NewGetTemperatureUseCase(cepService, weatherService, tracer)
 	validateUseCase := usecase.NewValidateCepUseCase(cepService, temperatureService)
 
 	port := os.Getenv("PORT")
