@@ -2,6 +2,9 @@ package web
 
 import (
 	"encoding/json"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 	"io"
 	"log"
 	"net/http"
@@ -12,23 +15,31 @@ import (
 type Handler struct {
 	temperature *usecase.GetTemperature
 	validate    *usecase.ValidateCep
+
+	tracer trace.Tracer
 }
 
-func NewWebHandler(temperature *usecase.GetTemperature, validate *usecase.ValidateCep) Handler {
+func NewWebHandler(temperature *usecase.GetTemperature, validate *usecase.ValidateCep, tracer trace.Tracer) Handler {
 	return Handler{
 		temperature: temperature,
 		validate:    validate,
+		tracer:      tracer,
 	}
 }
 
 func (h Handler) serveHTTPTemperature(w http.ResponseWriter, r *http.Request) {
+	carrier := propagation.HeaderCarrier(r.Header)
+	ctx := r.Context()
+	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+	ctx, span := h.tracer.Start(ctx, "temperature")
+	defer span.End()
+
 	log.Println("Serving HTTP temperature request")
 	if r.Method != http.MethodGet {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
-	ctx := r.Context()
 	cepInput := r.URL.Query().Get("cep")
 
 	input := usecase.GetTemperatureInput{Cep: cepInput}
@@ -49,6 +60,12 @@ func (h Handler) serveHTTPTemperature(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) serveHTTPValidate(w http.ResponseWriter, r *http.Request) {
+	carrier := propagation.HeaderCarrier(r.Header)
+	ctx := r.Context()
+	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+	ctx, span := h.tracer.Start(ctx, "validate")
+	defer span.End()
+
 	log.Println("Serving HTTP validate request")
 	if r.Method != http.MethodPost {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
@@ -76,7 +93,6 @@ func (h Handler) serveHTTPValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := usecase.ValidateCepInput{Cep: rInput.Cep}
-	ctx := r.Context()
 	output, err := h.validate.Execute(ctx, input)
 	if err != nil {
 		h.handleError(w, err)

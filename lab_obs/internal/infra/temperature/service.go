@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"io"
 	"log"
 	"net/http"
@@ -28,6 +30,7 @@ func (s service) GetTemperature(ctx context.Context, cep string) (Output, error)
 	if err != nil {
 		return Output{}, err
 	}
+	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(req.Header))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
