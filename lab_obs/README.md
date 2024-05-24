@@ -7,7 +7,9 @@
   * Zipkin
 * Exemplo de requisições estão na pasta `/api`
   * Requisição GET `/temperature?cep=99500000`
+    * Requisição Serviço B, com CEP válido;
   * Requisição POST `/validate`
+    * Requisição Serviço A, que realiza validação do CEP e realizada chamada para serviço B;
 * Tracing aparecerá no zipkin, na porta `9411 (http://localhost:9411/zipkin/)`
   * Requisição `temperature` gera um tracing standalone;
   * Requisição `validate` gera um tracing distribuido, entre os dois sistemas;

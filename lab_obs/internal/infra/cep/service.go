@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -47,7 +46,7 @@ func (s service) GetCity(ctx context.Context, cep string) (string, error) {
 		if resp.StatusCode == 404 {
 			return "", errors.New(NotFoundZipCode)
 		}
-		return "", fmt.Errorf("cep api returned status code %d", resp.StatusCode)
+		return "", errors.New(InvalidZipCode)
 	}
 
 	b, err := io.ReadAll(resp.Body)
